@@ -20,20 +20,16 @@ func (r Reading) Print() {
 	)
 }
 
-type SensorReadings struct {
-	SensorId string
-	Readings []Reading
-}
-
 func main() {
+	// load data from logfile
 	filepath := "data/sensor_data.log"
-
 	var sensorDataLines []string = LoadLinesFromFile(filepath)
 
+	// parse logfile data
 	var sensorReadings map[string][]Reading = ParseSensorData(sensorDataLines)
 
+	// print all sensor readings in asc id order
 	keysAscending := GetSortedKeys(sensorReadings)
-
 	for _, key := range keysAscending {
 		fmt.Printf("\nSensor %s has %d readings:\n", key, len(sensorReadings[key]))
 		for _, r := range sensorReadings[key] {
@@ -41,4 +37,7 @@ func main() {
 		}
 	}
 
+	// post to clarify with Go SDK
+	credsFile := "creds/ClarifyCredentials_SensorData_cvgqt44dbtbc73fap23g.json"
+	PostSensorReadingsWithSDK(sensorReadings, credsFile)
 }
