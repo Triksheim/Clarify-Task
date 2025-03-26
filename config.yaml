@@ -1,0 +1,14 @@
+paths:
+  sensor_data: data/sensor_data.log
+  clarify_credentials: creds/ClarifyCredentials_SensorData_cvgqt44dbtbc73fap23g.json
+  error_log: logs/error.log
+  upload_log: logs/upload.log
+
+flags:
+  print_readings: true
+  post_readings: true
+  log_error: true
+  log_upload: true
+
+net:
+  timeout_seconds: 10

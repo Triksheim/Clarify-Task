@@ -3,26 +3,30 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"os"
+	"time"
 
 	clarify "github.com/clarify/clarify-go"
 	"github.com/clarify/clarify-go/fields"
 	"github.com/clarify/clarify-go/views"
 )
 
-func PostSensorReadingsWithSDK(sensorReadings map[string][]Reading, credentialsFile string) error {
+func PostSensorReadingsWithSDK(sensorReadings map[string][]Reading, cfg Config) error {
 
+	credentialsFile := cfg.Paths.ClarifyCredentials
 	creds, err := clarify.CredentialsFromFile(credentialsFile)
 	if err != nil {
+		ErrorLog.Printf("Loading credentials failed: %v", err)
 		return err
 	}
 
-	ctx := context.Background()
+	timeout := time.Duration(cfg.Net.TimeoutSeconds) * time.Second
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	client := creds.Client(ctx)
 
 	// build DataFrame for post
 	df := views.DataFrame{}
-
 	for sensorID, readings := range sensorReadings {
 		timeseries := map[fields.Timestamp]float64{} // format {timestamp : value}
 		for _, r := range readings {
@@ -35,12 +39,19 @@ func PostSensorReadingsWithSDK(sensorReadings map[string][]Reading, credentialsF
 	// post req
 	result, err := client.Insert(df).Do(ctx)
 	if err != nil {
+		ErrorLog.Printf("POST request failed: %v", err)
 		return err
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	enc.Encode(result)
+	if cfg.Flags.LogUpload {
+		resultJSON, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			ErrorLog.Printf("Failed to encode result: %v", err)
+		} else {
+			UploadLog.Printf("\n%s", resultJSON)
+		}
+
+	}
 
 	return nil
 }

@@ -21,23 +21,35 @@ func (r Reading) Print() {
 }
 
 func main() {
+	// load config params
+	cfg, err := LoadConfig("config.yaml")
+	if err != nil {
+		panic(err)
+	}
+
+	// setup for logging to file
+	InitLogging(cfg)
+
 	// load data from logfile
-	filepath := "data/sensor_data.log"
+	filepath := cfg.Paths.SensorData
 	var sensorDataLines []string = LoadLinesFromFile(filepath)
 
 	// parse logfile data
 	var sensorReadings map[string][]Reading = ParseSensorData(sensorDataLines)
 
-	// print all sensor readings in asc id order
-	keysAscending := GetSortedKeys(sensorReadings)
-	for _, key := range keysAscending {
-		fmt.Printf("\nSensor %s has %d readings:\n", key, len(sensorReadings[key]))
-		for _, r := range sensorReadings[key] {
-			r.Print()
+	if cfg.Flags.PrintReadings {
+		// print all sensor readings in asc id order
+		keysAscending := GetSortedKeys(sensorReadings)
+		for _, key := range keysAscending {
+			fmt.Printf("\nSensor %s has %d readings:\n", key, len(sensorReadings[key]))
+			for _, r := range sensorReadings[key] {
+				r.Print()
+			}
 		}
 	}
 
-	// post to clarify with Go SDK
-	credsFile := "creds/ClarifyCredentials_SensorData_cvgqt44dbtbc73fap23g.json"
-	PostSensorReadingsWithSDK(sensorReadings, credsFile)
+	if cfg.Flags.PostReadings {
+		// post to clarify with Go SDK
+		PostSensorReadingsWithSDK(sensorReadings, cfg)
+	}
 }
