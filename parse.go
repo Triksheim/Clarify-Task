@@ -25,6 +25,7 @@ func ParseSensorData(dataLines []string) map[string][]Reading {
 		}
 		if err != nil {
 			ErrorLog.Printf("Line %d: invalid timestamp: %s", i+1, line)
+			continue
 		}
 		timestamp = timestamp.UTC() // Normalize to UTC time
 
@@ -33,6 +34,7 @@ func ParseSensorData(dataLines []string) map[string][]Reading {
 		value, err := strconv.ParseFloat(fields[2], 64)
 		if err != nil {
 			ErrorLog.Printf("Line %d: invalid value: %s", i+1, line)
+			continue
 		}
 
 		unit := fields[3]

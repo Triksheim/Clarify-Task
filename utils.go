@@ -6,10 +6,11 @@ import (
 	"sort"
 )
 
-func LoadLinesFromFile(filepath string) []string {
+func LoadLinesFromFile(filepath string) ([]string, error) {
 	file, err := os.Open(filepath)
 	if err != nil {
-		panic(err)
+		ErrorLog.Printf("Unable to open file: %s", filepath)
+		return nil, err
 	}
 	defer file.Close()
 
@@ -21,10 +22,11 @@ func LoadLinesFromFile(filepath string) []string {
 	}
 
 	if err := scanner.Err(); err != nil {
-		panic(err)
+		ErrorLog.Printf("Error while reading lines from: %s", filepath)
+		return nil, err
 	}
 
-	return lines
+	return lines, nil
 }
 
 func FahrenheitToCelsius(f float64) float64 {

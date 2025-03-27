@@ -32,7 +32,11 @@ func main() {
 
 	// load data from logfile
 	filepath := cfg.Paths.SensorData
-	var sensorDataLines []string = LoadLinesFromFile(filepath)
+	sensorDataLines, err := LoadLinesFromFile(filepath) // []string
+	if err != nil {
+		ErrorLog.Printf("Error while loading sensor data from file: %s", filepath)
+		return
+	}
 
 	// parse logfile data
 	var sensorReadings map[string][]Reading = ParseSensorData(sensorDataLines)
@@ -50,6 +54,9 @@ func main() {
 
 	if cfg.Flags.PostReadings {
 		// post to clarify with Go SDK
-		PostSensorReadingsWithSDK(sensorReadings, cfg)
+		err := PostSensorReadingsWithSDK(sensorReadings, cfg)
+		if err != nil {
+			ErrorLog.Printf("Failed to post sensor readings: %v", err)
+		}
 	}
 }
